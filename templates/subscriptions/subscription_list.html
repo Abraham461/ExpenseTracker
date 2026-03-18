@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Expenses</h1>
+    <p class="page-subtitle">Log daily spend, capture reasons, and monitor budget drift.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'expense_create' %}" class="btn btn-primary">New Expense</a>
+    <a href="{% url 'import_expenses' %}" class="btn btn-ghost">Import Excel</a>
+    <a href="{% url 'export_expense_template' %}" class="btn btn-ghost">Download Template</a>
+    <a href="{% url 'export_expenses' 'csv' %}" class="btn btn-ghost">Export CSV</a>
+    <a href="{% url 'export_expenses' 'xlsx' %}" class="btn btn-ghost">Export Excel</a>
+  </div>
+</div>
+
+<div class="filter-bar card mb-4 fade-in">
+  <div class="card-body d-flex flex-wrap gap-3 align-items-end">
+    <div class="flex-grow-1">
+      <label class="form-label" for="expenseSearch">Search</label>
+      <input type="text" class="form-control" id="expenseSearch" placeholder="Search by amount, category, reason, note, or date">
+    </div>
+    <div>
+      <button class="btn btn-ghost" id="resetFilters" type="button">Reset</button>
+    </div>
+    <div class="ms-auto text-muted small" id="resultCount"></div>
+  </div>
+</div>
+
+<div class="table-responsive fade-in">
+  <table class="table table-modern align-middle">
+    <thead>
+      <tr>
+        <th>Amount</th>
+        <th>Category</th>
+        <th>Reason</th>
+        <th>Date</th>
+        <th>Note</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for expense in expenses %}
+      <tr class="expense-row" data-search="{{ expense.amount }} {{ expense.category.name|default:'' }} {{ expense.reason|default:'' }} {{ expense.spent_on }} {{ expense.note }}">
+        <td class="fw-semibold">{{ currency_prefix }}{{ expense.amount }}</td>
+        <td>{{ expense.category.name|default:'Uncategorized' }}</td>
+        <td>{{ expense.reason|default:'Unspecified' }}</td>
+        <td>{{ expense.spent_on }}</td>
+        <td class="text-muted">{{ expense.note|default:'--' }}</td>
+        <td class="text-end">
+          <a href="{% url 'expense_update' expense.pk %}" class="btn btn-sm btn-ghost" title="Edit"><i class="bi bi-pencil"></i></a>
+          <a href="{% url 'expense_delete' expense.pk %}" class="btn btn-sm btn-ghost" title="Delete"><i class="bi bi-trash"></i></a>
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6" class="empty-state">No expenses yet.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const searchInput = document.getElementById('expenseSearch');
+  const resetButton = document.getElementById('resetFilters');
+  const rows = Array.from(document.querySelectorAll('.expense-row'));
+  const resultCount = document.getElementById('resultCount');
+
+  function applyFilters() {
+    const query = searchInput.value.toLowerCase().trim();
+    let visible = 0;
+
+    rows.forEach(row => {
+      const haystack = row.dataset.search.toLowerCase();
+      const matchesQuery = !query || haystack.includes(query);
+      const show = matchesQuery;
+      row.style.display = show ? '' : 'none';
+      if (show) visible += 1;
+    });
+
+    resultCount.textContent = `${visible} of ${rows.length} shown`;
+  }
+
+  if (rows.length > 0) {
+    applyFilters();
+    searchInput.addEventListener('input', applyFilters);
+    resetButton.addEventListener('click', () => {
+      searchInput.value = '';
+      applyFilters();
+    });
+  }
+</script>
+{% endblock %}

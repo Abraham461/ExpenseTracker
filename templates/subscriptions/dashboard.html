@@ -1,0 +1,348 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Expense Dashboard</h1>
+    <p class="page-subtitle">Track daily spending, compare against your budget, and stay on plan.</p>
+  </div>
+  <div class="page-actions">
+    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#quickExpenseModal">
+      Quick Add
+    </button>
+    <a href="{% url 'expense_create' %}" class="btn btn-ghost">Full Form</a>
+    {% if show_budget_prompt %}
+      <button type="button" class="btn btn-ghost" data-bs-toggle="modal" data-bs-target="#budgetPromptModal">
+        Set Budget
+      </button>
+    {% else %}
+      <a href="{% url 'income_settings' %}" class="btn btn-ghost">Set Budget</a>
+    {% endif %}
+    <a href="{% url 'run_reminders' %}" class="btn btn-warning-soft">Send Daily Reminder</a>
+  </div>
+</div>
+
+{% if show_budget_prompt %}
+<div class="card mb-4 fade-in budget-callout">
+  <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <h5 class="section-title mb-1">Budget Not Set</h5>
+      <p class="page-subtitle mb-0">Add your expected budget for this month to unlock clear daily limits.</p>
+    </div>
+    <div class="page-actions">
+      <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#budgetPromptModal">
+        Set Budget Now
+      </button>
+      <a href="{% url 'income_settings' %}" class="btn btn-ghost">Open Budget Page</a>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<div class="card mb-4 fade-in">
+  <div class="card-body d-flex flex-wrap align-items-center justify-content-between gap-3">
+    <div>
+      <h5 class="section-title mb-1">Budget Snapshot</h5>
+      <p class="page-subtitle mb-0">
+        {% if period_start %}
+          Period: {{ period_start }} → {{ month_end }} · Daily: {{ currency_prefix }}{{ daily_limit }} · Spent: {{ currency_prefix }}{{ month_total }}
+        {% else %}
+          Set your monthly budget to see daily limits.
+        {% endif %}
+      </p>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-ghost" href="{% url 'insights' %}">View Insights</a>
+      <a class="btn btn-ghost" href="{% url 'expense_list' %}">View Expenses</a>
+    </div>
+  </div>
+</div>
+
+<h5 class="section-title mb-3">Today</h5>
+<div class="stat-grid mb-4 fade-in">
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Today Spent</div>
+        <p class="stat-value">{{ currency_prefix }}{{ today_total }}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-lightning-charge"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Daily Budget</div>
+        <p class="stat-value">{% if daily_limit %}{{ currency_prefix }}{{ daily_limit }}{% else %}Set budget{% endif %}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-arrow-repeat"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Remaining Today</div>
+        <p class="stat-value">{% if remaining_today != None %}{{ currency_prefix }}{{ remaining_today }}{% else %}Set budget{% endif %}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-pie-chart"></i></div>
+    </div>
+  </div>
+</div>
+
+{% if budget_message %}
+<div class="card mb-4 fade-in">
+  <div class="card-body">
+    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
+      <div>
+        <h6 class="section-title mb-1">Today Status</h6>
+        <p class="page-subtitle mb-0">{{ budget_message }}</p>
+      </div>
+      <span class="status-badge {% if budget_status == 'danger' %}status-cancelled{% elif budget_status == 'warning' %}status-trial{% else %}status-active{% endif %}">
+        {% if budget_status == 'danger' %}Overspending{% elif budget_status == 'warning' %}Approaching Limit{% else %}On Track{% endif %}
+      </span>
+    </div>
+    <div class="progress mt-3" style="height: 8px;">
+      <div class="progress-bar {% if budget_status == 'danger' %}bg-danger{% elif budget_status == 'warning' %}bg-warning{% else %}bg-success{% endif %}" role="progressbar" style="width: {{ budget_percent }}%"></div>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<h5 class="section-title mb-3">Budget Period</h5>
+<div class="stat-grid mb-4 fade-in">
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">
+          {% if period_start and period_start.day != 1 %}
+            Spend Since {{ period_start }}
+          {% else %}
+            Month To Date
+          {% endif %}
+        </div>
+        <p class="stat-value">
+          {% if period_total != None %}
+            {{ currency_prefix }}{{ period_total }}
+          {% else %}
+            {{ currency_prefix }}{{ month_total }}
+          {% endif %}
+        </p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-calendar-range"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Remaining In Budget</div>
+        <p class="stat-value">{% if remaining_month != None %}{{ currency_prefix }}{{ remaining_month }}{% else %}Set budget{% endif %}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-wallet2"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Base Daily Limit</div>
+        <p class="stat-value">{% if base_daily_limit %}{{ currency_prefix }}{{ base_daily_limit }}{% else %}Not set{% endif %}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-flag"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="section-title">Recent Expenses</h5>
+        <i class="bi bi-receipt"></i>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for expense in recent_expenses %}
+        <li class="list-group-item d-flex align-items-center justify-content-between">
+          <div>
+            <div class="fw-semibold">
+              {{ currency_prefix }}{{ expense.amount }} -
+              {{ expense.category.name|default:'Uncategorized' }}{% if expense.reason %}: {{ expense.reason }}{% endif %}
+            </div>
+            <small class="text-muted">{{ expense.spent_on }}</small>
+          </div>
+          <span class="text-muted">{{ expense.note|default:'--' }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item empty-state">No expenses logged yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="section-title">Top Categories</h5>
+        <i class="bi bi-bar-chart"></i>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for item in top_categories %}
+        <li class="list-group-item d-flex align-items-center justify-content-between">
+          <span class="fw-semibold">{{ item.category__name|default:'Uncategorized' }}</span>
+          <span class="text-muted">{{ currency_prefix }}{{ item.total }}</span>
+        </li>
+      {% empty %}
+        <li class="list-group-item empty-state">No category data yet.</li>
+      {% endfor %}
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{% if show_budget_prompt %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEl = document.getElementById('budgetPromptModal');
+  if (!modalEl) {
+    return;
+  }
+  if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+    return;
+  }
+  modalEl.classList.add('show');
+  modalEl.style.display = 'block';
+  modalEl.removeAttribute('aria-hidden');
+  document.body.classList.add('modal-open');
+  const backdrop = document.createElement('div');
+  backdrop.className = 'modal-backdrop fade show';
+  backdrop.dataset.modalFallback = 'true';
+  document.body.appendChild(backdrop);
+
+  const close = () => {
+    modalEl.classList.remove('show');
+    modalEl.style.display = 'none';
+    modalEl.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('modal-open');
+    const existing = document.querySelector('.modal-backdrop[data-modal-fallback="true"]');
+    if (existing) {
+      existing.remove();
+    }
+  };
+
+  modalEl.querySelectorAll('[data-bs-dismiss="modal"]').forEach((btn) => {
+    btn.addEventListener('click', close);
+  });
+  backdrop.addEventListener('click', close);
+});
+</script>
+{% endif %}
+{% endblock %}
+
+{% block modals %}
+<div class="modal fade" id="quickExpenseModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content budget-modal">
+      <div class="modal-header">
+        <div>
+          <h5 class="modal-title">Quick Add Expense</h5>
+          <p class="page-subtitle mb-0">Log an expense in under a minute.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form method="post" action="{% url 'expense_create' %}" class="app-form">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{% url 'dashboard' %}">
+          <div class="row g-3">
+            <div class="col-md-6">
+              {{ expense_form.amount.label_tag }}
+              {{ expense_form.amount }}
+              {{ expense_form.amount.errors }}
+            </div>
+            <div class="col-md-6">
+              {{ expense_form.category.label_tag }}
+              {{ expense_form.category }}
+              {{ expense_form.category.errors }}
+            </div>
+            <div class="col-12">
+              {{ expense_form.reason.label_tag }}
+              {{ expense_form.reason }}
+              {{ expense_form.reason.errors }}
+            </div>
+            <div class="col-12">
+              {{ expense_form.spent_on.as_hidden }}
+              {{ expense_form.note.as_hidden }}
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" type="submit">Add Expense</button>
+            <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% if show_budget_prompt %}
+<div class="modal fade budget-modal" id="budgetPromptModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header align-items-start">
+        <div>
+          <h5 class="modal-title">Set Your Monthly Budget</h5>
+          <p class="page-subtitle mb-0">Enter your expected budget for this month.</p>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-4">
+          <div class="col-lg-5">
+            <div class="budget-tip">
+              <h6>How this works</h6>
+              <ul class="mb-0">
+                <li>Your monthly budget is used for this month only.</li>
+                <li>We split it across the remaining days.</li>
+                <li>Next month, you will be asked again.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="col-lg-7">
+            <form method="post" action="{% url 'income_settings' %}" class="app-form">
+              {% csrf_token %}
+              <div class="mb-3">
+                {{ budget_form.month_remaining_budget.label_tag }}
+                {{ budget_form.month_remaining_budget }}
+                {{ budget_form.month_remaining_budget.errors }}
+                <small class="text-muted">Example: 1000000</small>
+              </div>
+              <div class="toggle-row mb-3">
+                <label class="toggle-control" for="{{ budget_form.daily_email_reminders.id_for_label }}">
+                  {{ budget_form.daily_email_reminders }}
+                  <span class="toggle-slider" aria-hidden="true"></span>
+                </label>
+                <div class="toggle-text">
+                  <label class="form-check-label" for="{{ budget_form.daily_email_reminders.id_for_label }}">
+                    {{ budget_form.daily_email_reminders.label }}
+                  </label>
+                  {% if budget_form.daily_email_reminders.help_text %}
+                    <small class="text-muted">{{ budget_form.daily_email_reminders.help_text }}</small>
+                  {% endif %}
+                  {{ budget_form.daily_email_reminders.errors }}
+                </div>
+              </div>
+              {% if budget_form.non_field_errors %}
+                <div class="alert alert-warning">{{ budget_form.non_field_errors }}</div>
+              {% endif %}
+              <div class="form-actions">
+                <button class="btn btn-primary" type="submit">Save Budget</button>
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Maybe Later</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

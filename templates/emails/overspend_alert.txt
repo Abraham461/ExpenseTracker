@@ -1,0 +1,8 @@
+Hi {{ user.username }},
+
+You exceeded today's budget by {{ currency_prefix }}{{ overspend }} ({{ date|date:"F j, Y" }}).
+
+Review today's expenses in SubTrack to see where you can adjust.
+
+Thanks,
+SubTrack

@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Categories</h1>
+    <p class="page-subtitle">Organize expenses with clear categories for better analytics.</p>
+  </div>
+  <div class="page-actions">
+    <a href="{% url 'category_create' %}" class="btn btn-primary">Add Category</a>
+  </div>
+</div>
+
+<div class="card fade-in">
+  <div class="card-body">
+    <div class="table-responsive">
+      <table class="table table-modern align-middle">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Description</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for category in categories %}
+          <tr>
+            <td class="fw-semibold">{{ category.name }}</td>
+            <td class="text-muted">{{ category.description|default:'--' }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="2" class="empty-state">No categories yet.</td></tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}

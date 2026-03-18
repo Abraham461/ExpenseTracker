@@ -1,0 +1,23 @@
+Hi {{ user.username }},
+
+Here is your spending summary for {{ month_label }}.
+
+{% if has_expenses %}
+Total spent: {{ currency_prefix }}{{ month_total }}
+Days logged: {{ days_logged }}
+
+Compared to last month: {{ currency_prefix }}{{ change_amount }}
+{% if change_percent != None %}Change percent: {{ change_percent }}%{% endif %}
+
+Top reasons:
+{% for item in common_reasons %}
+- {{ item.reason|default:"Unspecified" }}: {{ currency_prefix }}{{ item.total }}
+{% empty %}
+- No reasons recorded.
+{% endfor %}
+{% else %}
+No expenses were logged for this month.
+{% endif %}
+
+Thanks,
+SubTrack

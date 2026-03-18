@@ -1,0 +1,8 @@
+Hi {{ user.username }},
+
+You haven't logged today's expenses yet ({{ date|date:"F j, Y" }}).
+
+Open SubTrack to record what you spent and stay on budget.
+
+Thanks,
+SubTrack
