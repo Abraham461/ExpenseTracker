@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Spending Analytics</h1>
+    <p class="page-subtitle">Break spending down by category and spot weekly trends.</p>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="card chart-card fade-in">
+      <h5 class="section-title mb-3">Spending by Category</h5>
+      <canvas id="categoryChart" height="180"></canvas>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="card chart-card fade-in">
+      <h5 class="section-title mb-3">Weekly Spending Trend</h5>
+      <canvas id="weeklyChart" height="180"></canvas>
+    </div>
+  </div>
+</div>
+
+{{ labels|json_script:"labels-data" }}
+{{ amounts|json_script:"amounts-data" }}
+{{ weekly_labels|json_script:"weekly-labels-data" }}
+{{ weekly_amounts|json_script:"weekly-amounts-data" }}
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const style = getComputedStyle(document.documentElement);
+  const ink = style.getPropertyValue('--ink').trim() || '#e2e8f0';
+  const muted = style.getPropertyValue('--muted').trim() || '#94a3b8';
+
+  const categoryLabels = JSON.parse(document.getElementById('labels-data').textContent);
+  const categoryAmounts = JSON.parse(document.getElementById('amounts-data').textContent);
+  const weeklyLabels = JSON.parse(document.getElementById('weekly-labels-data').textContent);
+  const weeklyAmounts = JSON.parse(document.getElementById('weekly-amounts-data').textContent);
+
+  const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+  new Chart(categoryCtx, {
+    type: 'pie',
+    data: {
+      labels: categoryLabels,
+      datasets: [{
+        data: categoryAmounts,
+        backgroundColor: [
+          'rgba(59, 130, 246, 0.85)',
+          'rgba(16, 185, 129, 0.85)',
+          'rgba(249, 115, 22, 0.85)',
+          'rgba(139, 92, 246, 0.85)',
+          'rgba(244, 63, 94, 0.85)',
+          'rgba(14, 165, 233, 0.85)'
+        ],
+        borderColor: 'rgba(15, 23, 42, 0.9)',
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: 'bottom',
+          labels: { color: ink }
+        }
+      }
+    }
+  });
+
+  const weeklyCtx = document.getElementById('weeklyChart').getContext('2d');
+  const gradient = weeklyCtx.createLinearGradient(0, 0, 0, 260);
+  gradient.addColorStop(0, 'rgba(59, 130, 246, 0.85)');
+  gradient.addColorStop(1, 'rgba(14, 165, 233, 0.2)');
+
+  new Chart(weeklyCtx, {
+    type: 'line',
+    data: {
+      labels: weeklyLabels,
+      datasets: [{
+        label: 'Daily spend',
+        data: weeklyAmounts,
+        borderColor: 'rgba(59, 130, 246, 0.9)',
+        backgroundColor: gradient,
+        tension: 0.35,
+        fill: true,
+        pointRadius: 4,
+        pointBackgroundColor: 'rgba(59, 130, 246, 0.9)'
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { color: ink }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: muted },
+          grid: { display: false }
+        },
+        y: {
+          ticks: { color: muted },
+          grid: { color: 'rgba(148, 163, 184, 0.2)' }
+        }
+      }
+    }
+  });
+</script>
+{% endblock %}

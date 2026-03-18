@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="page-header fade-in">
+  <div>
+    <h1 class="page-title">Monthly Insights</h1>
+    <p class="page-subtitle">Patterns for {{ month_label }} based on your expenses.</p>
+  </div>
+  <div class="page-actions">
+    <form method="get" class="d-flex gap-2">
+      <input type="month" name="month" class="form-control" value="{{ selected_month }}">
+      <button class="btn btn-primary" type="submit">View</button>
+    </form>
+  </div>
+</div>
+
+<div class="stat-grid mb-4 fade-in">
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Total Spent</div>
+        <p class="stat-value">{{ currency_prefix }}{{ month_total }}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-cash-stack"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Last Month</div>
+        <p class="stat-value">{{ currency_prefix }}{{ prev_month_total }}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-calendar3"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Change</div>
+        <p class="stat-value">
+          {% if change_percent != None %}
+            {{ currency_prefix }}{{ change_amount }} ({{ change_percent }}%)
+          {% else %}
+            {{ currency_prefix }}{{ change_amount }}
+          {% endif %}
+        </p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-graph-up-arrow"></i></div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-head">
+      <div>
+        <div class="stat-label">Days Logged</div>
+        <p class="stat-value">{{ days_logged }}</p>
+      </div>
+      <div class="stat-icon"><i class="bi bi-journal-check"></i></div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-7">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="section-title">Common Reasons</h5>
+        <i class="bi bi-list-check"></i>
+      </div>
+      <ul class="list-group list-group-flush">
+        {% for item in common_reasons %}
+        <li class="list-group-item d-flex align-items-center justify-content-between">
+          <span class="fw-semibold">{{ item.reason|default:'Unspecified' }}</span>
+          <span class="text-muted">{{ currency_prefix }}{{ item.total }}</span>
+        </li>
+        {% empty %}
+        <li class="list-group-item empty-state">No expenses recorded for this month.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="col-lg-5">
+    <div class="card h-100">
+      <div class="card-header d-flex align-items-center justify-content-between">
+        <h5 class="section-title">Highest Spending</h5>
+        <i class="bi bi-exclamation-circle"></i>
+      </div>
+      <div class="card-body">
+        <div class="mb-3">
+          <div class="text-muted">Highest Day</div>
+          {% if highest_spend_day %}
+            <div class="fw-semibold">{{ highest_spend_day.spent_on }} · {{ currency_prefix }}{{ highest_spend_day.total }}</div>
+          {% else %}
+            <div class="text-muted">No data yet.</div>
+          {% endif %}
+        </div>
+        <div>
+          <div class="text-muted">Largest Expense</div>
+          {% if highest_expense %}
+            <div class="fw-semibold">{{ currency_prefix }}{{ highest_expense.amount }} · {{ highest_expense.spent_on }}</div>
+            <small class="text-muted">{{ highest_expense.reason|default:'Unspecified' }}</small>
+          {% else %}
+            <div class="text-muted">No data yet.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

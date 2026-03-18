@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-card card fade-in">
+  <div class="card-body">
+    <h2 class="page-title-sm">New Category</h2>
+    <p class="page-subtitle">Create a category to group your expenses.</p>
+    <form method="post" class="app-form">{% csrf_token %}
+      {{ form.as_p }}
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Save Category</button>
+        <a href="{% url 'category_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

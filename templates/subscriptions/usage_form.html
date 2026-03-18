@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-card card fade-in">
+  <div class="card-body">
+    <h2 class="page-title-sm">{{ title|default:'Budget Settings' }}</h2>
+    <p class="page-subtitle">Set your expected budget and reminder preferences for this month.</p>
+    <form method="post" class="app-form">{% csrf_token %}
+      <div class="mb-3">
+        {{ form.month_remaining_budget.label_tag }}
+        {{ form.month_remaining_budget }}
+        {{ form.month_remaining_budget.errors }}
+        <small class="text-muted">Example: 1000000</small>
+        {% if form.month_remaining_budget.help_text %}
+          <small class="text-muted d-block">{{ form.month_remaining_budget.help_text }}</small>
+        {% endif %}
+      </div>
+      <div class="toggle-row mb-3">
+        <label class="toggle-control" for="{{ form.daily_email_reminders.id_for_label }}">
+          {{ form.daily_email_reminders }}
+          <span class="toggle-slider" aria-hidden="true"></span>
+        </label>
+        <div class="toggle-text">
+          <label class="form-check-label" for="{{ form.daily_email_reminders.id_for_label }}">
+            {{ form.daily_email_reminders.label }}
+          </label>
+          {% if form.daily_email_reminders.help_text %}
+            <small class="text-muted">{{ form.daily_email_reminders.help_text }}</small>
+          {% endif %}
+          {{ form.daily_email_reminders.errors }}
+        </div>
+      </div>
+      {% if form.non_field_errors %}
+        <div class="alert alert-warning">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Save</button>
+        <a href="{% url 'dashboard' %}" class="btn btn-ghost">Back to Dashboard</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

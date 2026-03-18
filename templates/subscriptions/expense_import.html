@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="form-card card fade-in">
+  <div class="card-body">
+    <h2 class="page-title-sm">Import Expenses</h2>
+    <p class="page-subtitle">Upload an Excel file to import expenses.</p>
+    <div class="alert alert-info">
+      Use the exported Excel template for best results. Required columns: Date, Amount.
+    </div>
+    <form method="post" enctype="multipart/form-data" class="app-form">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label" for="importFile">Excel file (.xlsx)</label>
+        <input type="file" class="form-control" id="importFile" name="file" accept=".xlsx" required>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Import</button>
+        <a href="{% url 'expense_list' %}" class="btn btn-ghost">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
