@@ -37,6 +37,10 @@ SubTrack is a Django-based expense tracker that helps you log daily spending, se
 ## Quick Start
 
 ```bash
+# 0) Enable debug for local development
+# PowerShell: $env:DJANGO_DEBUG="true"
+# Bash/Zsh: export DJANGO_DEBUG=true
+
 # 1) Create and activate a virtual environment
 # 2) Install dependencies
 pip install -r requirements.txt
@@ -49,6 +53,20 @@ python manage.py createsuperuser
 
 # 5) Run the server
 python manage.py runserver
+```
+
+## Production Deploy
+
+1. Set environment variables (see `.env.example`) in your hosting platform.
+2. Use PostgreSQL and set `DATABASE_URL`.
+3. Turn off debug with `DJANGO_DEBUG=false`.
+4. Configure allowed hosts and CSRF trusted origins.
+5. Collect static assets and run migrations.
+
+```bash
+python manage.py migrate
+python manage.py collectstatic --noinput
+gunicorn subtrack_project.wsgi:application
 ```
 
 ## Common Commands
